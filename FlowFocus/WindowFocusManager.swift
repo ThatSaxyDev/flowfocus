@@ -37,7 +37,8 @@ class WindowFocusManager: ObservableObject {
         case .single:
             return windowID == windowTracker.focusedWindowID
         case .multiPin:
-            return windowID == windowTracker.focusedWindowID || pinnedWindowIDs.contains(windowID)
+            // Only show explicitly pinned windows (user has full control)
+            return pinnedWindowIDs.contains(windowID)
         case .currentApp:
             return windowTracker.appWindowIDs.contains(windowID)
         }
@@ -87,6 +88,38 @@ class WindowFocusManager: ObservableObject {
             let displayName = windowName ?? ownerName
             
             result.append((id: id, name: displayName))
+        }
+        
+        return result
+    }
+    
+    // Get ALL visible windows for the pin selection UI
+    func getAllWindowsInfo() -> [(id: CGWindowID, name: String, appName: String, isPinned: Bool)] {
+        guard let info = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else { return [] }
+        
+        var result: [(id: CGWindowID, name: String, appName: String, isPinned: Bool)] = []
+        
+        // Apps to exclude (system UI only)
+        let excludedApps = ["Window Server", "Dock", "SystemUIServer", "Control Center", "Notification Center", "FlowFocus", "Spotlight"]
+        
+        for window in info {
+            guard let id = window[kCGWindowNumber as String] as? CGWindowID,
+                  let ownerName = window[kCGWindowOwnerName as String] as? String,
+                  !excludedApps.contains(ownerName),
+                  let boundsDict = window[kCGWindowBounds as String] as? [String: Any],
+                  let bounds = CGRect(dictionaryRepresentation: boundsDict as CFDictionary),
+                  bounds.width > 100, bounds.height > 50 // Skip tiny windows (toolbars, etc.)
+            else { continue }
+            
+            let windowName = window[kCGWindowName as String] as? String
+            let displayName = (windowName?.isEmpty == false) ? windowName! : ownerName
+            
+            result.append((
+                id: id,
+                name: displayName,
+                appName: ownerName,
+                isPinned: pinnedWindowIDs.contains(id)
+            ))
         }
         
         return result

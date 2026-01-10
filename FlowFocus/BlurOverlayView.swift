@@ -42,11 +42,11 @@ struct BlurOverlayView: View {
                             let menuBarHeight = mainScreen.frame.height - mainScreen.visibleFrame.height - mainScreen.visibleFrame.minY + mainScreen.frame.minY
                             
                             // Pill dimensions (closed state)
-                            let pillWidth: CGFloat = 500
+                            let pillWidth: CGFloat = 700
                             let pillHeight = max(menuBarHeight - 4, 24)
                             
                             // Rectangle dimensions (open state) - covers popover area
-                            let popoverWidth: CGFloat = 600 // Slightly larger than popover (300)
+                            let popoverWidth: CGFloat = 700 // Slightly larger than popover (300)
                             let popoverHeight: CGFloat = 450 // Slightly larger than popover (400)
                             
                             // Calculate dimensions based on popover state

@@ -56,19 +56,19 @@ struct SettingsView: View {
                 }
             }
             
-            // Pinned Windows Section (only show in multiPin mode)
+            // Window Selection Section (only show in multiPin mode)
             if settings.focusMode == .multiPin {
                 Divider()
                 
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Image(systemName: "pin.fill")
-                            .foregroundColor(.orange)
-                        Text("Pinned Windows")
+                        Image(systemName: "macwindow.on.rectangle")
+                            .foregroundColor(.accentColor)
+                        Text("Select Windows")
                             .font(.subheadline.weight(.medium))
                         Spacer()
                         if !focusManager.pinnedWindowIDs.isEmpty {
-                            Button("Clear") {
+                            Button("Clear All") {
                                 focusManager.clearPins()
                             }
                             .buttonStyle(.plain)
@@ -77,32 +77,51 @@ struct SettingsView: View {
                         }
                     }
                     
-                    if focusManager.pinnedWindowIDs.isEmpty {
-                        Text("No windows pinned.\nUse ⌃⌥⌘P to pin the focused window.")
+                    let windows = focusManager.getAllWindowsInfo()
+                    
+                    if windows.isEmpty {
+                        Text("No windows available")
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .frame(maxWidth: .infinity, alignment: .center)
                             .padding(.vertical, 8)
                     } else {
-                        ForEach(focusManager.getPinnedWindowInfo(), id: \.id) { info in
-                            HStack {
-                                Image(systemName: "macwindow")
-                                    .foregroundColor(.secondary)
-                                Text(info.name)
-                                    .lineLimit(1)
-                                    .truncationMode(.middle)
-                                Spacer()
-                                Button {
-                                    focusManager.togglePin(windowID: info.id)
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .foregroundColor(.secondary)
+                        ScrollView {
+                            VStack(spacing: 4) {
+                                ForEach(windows, id: \.id) { window in
+                                    HStack(spacing: 8) {
+                                        // Toggle
+                                        Image(systemName: window.isPinned ? "checkmark.circle.fill" : "circle")
+                                            .foregroundColor(window.isPinned ? .accentColor : .secondary)
+                                            .font(.system(size: 16))
+                                        
+                                        // App icon placeholder + name
+                                        VStack(alignment: .leading, spacing: 1) {
+                                            Text(window.name)
+                                                .font(.caption)
+                                                .lineLimit(1)
+                                                .truncationMode(.middle)
+                                            if window.name != window.appName {
+                                                Text(window.appName)
+                                                    .font(.caption2)
+                                                    .foregroundColor(.secondary)
+                                            }
+                                        }
+                                        
+                                        Spacer()
+                                    }
+                                    .padding(.vertical, 4)
+                                    .padding(.horizontal, 6)
+                                    .background(window.isPinned ? Color.accentColor.opacity(0.1) : Color.clear)
+                                    .cornerRadius(6)
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        focusManager.togglePin(windowID: window.id)
+                                    }
                                 }
-                                .buttonStyle(.plain)
                             }
-                            .font(.caption)
-                            .padding(.vertical, 2)
                         }
+                        .frame(maxHeight: 150)
                     }
                 }
             }

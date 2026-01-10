@@ -13,7 +13,6 @@ class OverlayWindowController: NSObject {
     }
     
     func createWindow() {
-        // Create a window that covers the entire virtual screen union
         let screenFrame = NSScreen.screens.map { $0.frame }.reduce(NSScreen.main?.frame ?? .zero) { $0.union($1) }
         
         let window = NSWindow(
@@ -25,11 +24,12 @@ class OverlayWindowController: NSObject {
         
         window.isOpaque = false
         window.backgroundColor = .clear
-        window.level = .init(Int(CGWindowLevelForKey(.assistiveTechHighWindow))) // Very high level
+        window.level = .init(Int(CGWindowLevelForKey(.assistiveTechHighWindow)))
         window.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]
-        window.ignoresMouseEvents = true // Let clicks pass through
         
-        // Host the SwiftUI View
+        // SAFE: Let all clicks pass through (no blocking for now)
+        window.ignoresMouseEvents = true
+        
         let hostingView = NSHostingView(rootView: BlurOverlayView())
         window.contentView = hostingView
         
@@ -42,7 +42,6 @@ class OverlayWindowController: NSObject {
     }
     
     @objc func screenChanged() {
-        // Update frame when screens change
         let screenFrame = NSScreen.screens.map { $0.frame }.reduce(NSScreen.main?.frame ?? .zero) { $0.union($1) }
         overlayWindow?.setFrame(screenFrame, display: true)
     }
@@ -63,3 +62,5 @@ class OverlayWindowController: NSObject {
         }
     }
 }
+
+
