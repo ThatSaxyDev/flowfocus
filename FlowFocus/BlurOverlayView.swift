@@ -59,18 +59,19 @@ struct BlurOverlayView: View {
                                 .animation(.spring(response: 0.35, dampingFraction: 0.75), value: settings.isPopoverOpen)
                         }
                         
-                        // Cutouts (Holes) with smooth movement
+                        // Cutouts (Holes) - only animate for single window
                         let rects = focusManager.getCutoutRects()
+                        
                         ForEach(rects.indices, id: \.self) { index in
                             let rect = rects[index]
                             RoundedRectangle(cornerRadius: 12)
-                                .frame(width: rect.width, height: rect.height) // Snug fit
+                                .frame(width: rect.width, height: rect.height)
                                 .position(x: rect.midX, y: rect.midY)
                                 .blendMode(.destinationOut)
                         }
                     }
                     .compositingGroup()
-                    .animation(.interactiveSpring(response: 0.15, dampingFraction: 0.8), value: focusManager.getCutoutRects().map { "\($0)" })
+                    .animation(focusManager.getCutoutRects().count == 1 ? .interactiveSpring(response: 0.15, dampingFraction: 0.8) : nil, value: focusManager.getCutoutRects().map { "\($0)" })
                 )
             }
         }

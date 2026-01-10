@@ -1,6 +1,5 @@
 import Cocoa
 import Combine
-import CoreVideo
 import ApplicationServices
 
 class WindowTracker: ObservableObject {
@@ -10,10 +9,10 @@ class WindowTracker: ObservableObject {
     @Published var focusedWindowID: CGWindowID = 0
     @Published var appWindowIDs: Set<CGWindowID> = []
     
-    private var displayLink: CVDisplayLink?
+    private var displayTimer: Timer?
+    private var frameCounter = 0
     
     init() {
-        setupDisplayLink()
         startTracking()
     }
     
@@ -21,52 +20,28 @@ class WindowTracker: ObservableObject {
         stopTracking()
     }
     
-    func setupDisplayLink() {
-        CVDisplayLinkCreateWithActiveCGDisplays(&displayLink)
-        
-        let displayLinkOutputCallback: CVDisplayLinkOutputCallback = { displayLink, _inNow, _inOutputTime, _flagsIn, _flagsOut, displayLinkContext in
-            let manager = Unmanaged<WindowTracker>.fromOpaque(displayLinkContext!).takeUnretainedValue()
-            manager.updateFocusedWindowKey()
-            return kCVReturnSuccess
-        }
-        
-        if let link = displayLink {
-            CVDisplayLinkSetOutputCallback(link, displayLinkOutputCallback, Unmanaged.passUnretained(self).toOpaque())
-        }
-    }
-    
     func startTracking() {
-        guard let link = displayLink else { return }
-        CVDisplayLinkStart(link)
+        // Use Timer instead of deprecated CVDisplayLink
+        // 60 FPS = 1/60 = ~0.0167 seconds
+        displayTimer = Timer.scheduledTimer(withTimeInterval: 1.0/60.0, repeats: true) { [weak self] _ in
+            self?.updateFocusedWindowKey()
+        }
+        RunLoop.current.add(displayTimer!, forMode: .common)
     }
     
     func stopTracking() {
-        guard let link = displayLink else { return }
-        CVDisplayLinkStop(link)
+        displayTimer?.invalidate()
+        displayTimer = nil
     }
     
     private func updateFocusedWindowKey() {
         // High-frequency polling using Accessibility API for smoothness
         updateFocusedWindowFrameAX()
         
-        // Lower-frequency polling for IDs (pinning support) could go here or remain
-        // For now, let's just make sure we get the frame fast.
-        // We still need the ID to update 'focusedWindowID' for the FocusManager logic.
-        // But running CGWindowList every 16ms is heavy.
-        // We can optimize by only running CGWindowList if the App/Window *changed*, 
-        // but detecting that change requires... checking.
-        // Let's rely on AX for the Geometry (Visuals) and maybe run ID check less often?
-        // Or just run the ID check on a throttle.
-        
-        // Actually, let's keep the ID check separate on a background queue/timer if possible,
-        // OR just do it every N frames.
-        
-        struct State {
-            static var counter = 0
-        }
-        State.counter += 1
-        if State.counter % 10 == 0 { // Run ID check every ~160ms (approx)
-             updateFocusedWindowID_CG()
+        // Run ID check every ~160ms (every 10 frames at 60fps)
+        frameCounter += 1
+        if frameCounter % 10 == 0 {
+            updateFocusedWindowID_CG()
         }
     }
 
@@ -97,7 +72,6 @@ class WindowTracker: ObservableObject {
             let rect = CGRect(origin: pt, size: sz)
             
             DispatchQueue.main.async {
-                // Smooth update for visuals
                 if self.focusedWindowFrame != rect {
                     self.focusedWindowFrame = rect
                 }
@@ -115,9 +89,6 @@ class WindowTracker: ObservableObject {
                   let id = window[kCGWindowNumber as String] as? CGWindowID,
                   let ownerPID = window[kCGWindowOwnerPID as String] as? Int32
             else { continue }
-            
-            // To match AX frame with CG ID is tricky without fuzzy matching frames.
-            // But usually the frontmost window in CGWindowList IS the focused window.
             
             DispatchQueue.main.async {
                 if self.focusedWindowID != id {
