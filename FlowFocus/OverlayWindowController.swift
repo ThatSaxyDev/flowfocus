@@ -50,10 +50,16 @@ class OverlayWindowController: NSObject {
     // MARK: - Popover Visibility Helpers
     
     func hideForPopover() {
-        overlayWindow?.alphaValue = 0.0
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.2
+            overlayWindow?.animator().alphaValue = 0.0
+        }
     }
     
     func showAfterPopover() {
-        overlayWindow?.alphaValue = 1.0
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = 0.2
+            overlayWindow?.animator().alphaValue = 1.0
+        }
     }
 }

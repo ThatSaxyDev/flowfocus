@@ -12,19 +12,24 @@ struct BlurOverlayView: View {
         ZStack {
             GeometryReader { geometry in
                  ZStack {
-                    // Background Layer
-                    if settings.isDimMode {
-                        Color.black.opacity(settings.dimOpacity)
-                    } else {
-                        ZStack {
-                            // "popover" material is often cleaner/blurrier than hudWindow
+                    // Background Layer with crossfade animation
+                    ZStack {
+                        // Dim mode layer
+                        Color.black
+                            .opacity(settings.isDimMode ? settings.dimOpacity : 0)
+                        
+                        // Blur mode layer
+                        if !settings.isDimMode {
                             VisualEffectView(material: .popover, blendingMode: .behindWindow)
-                                .opacity(1.0) // Keep blur full strength to avoid "fading out" of the blur radius
                             
-                            // Use the slider to control the DARKNESS/TINT instead of blur opacity
-                            Color.black.opacity(Double(settings.blurStrength) / 120.0) // 0 to ~0.8 opacity
+                            // Tint layer with smooth slider response
+                            Color.black
+                                .opacity(Double(settings.blurStrength) / 120.0)
                         }
                     }
+                    .animation(.easeInOut(duration: 0.25), value: settings.isDimMode) // Mode switch crossfade
+                    .animation(.linear(duration: 0.1), value: settings.blurStrength) // Smooth slider
+                    .animation(.linear(duration: 0.1), value: settings.dimOpacity) // Smooth slider
                 }
                 // The cutout mask
                 .mask(
@@ -33,13 +38,12 @@ struct BlurOverlayView: View {
                             .fill(Color.black)
                         
                         // Menu Bar Cutout - Pill shape on the RIGHT side only (status icons area)
-                        // This creates a sleek "control island" look for accessing FlowFocus
                         if let mainScreen = NSScreen.main {
                             let menuBarHeight = mainScreen.frame.height - mainScreen.visibleFrame.height - mainScreen.visibleFrame.minY + mainScreen.frame.minY
-                            let pillWidth: CGFloat = 500 // Width of the pill cutout
-                            let pillHeight = max(menuBarHeight - 4, 24) // Slightly smaller than menu bar for padding
-                            let pillX = mainScreen.frame.maxX - (pillWidth / 2) - 8 // 8px from right edge
-                            let pillY = (menuBarHeight / 2) // Centered vertically in menu bar
+                            let pillWidth: CGFloat = 500
+                            let pillHeight = max(menuBarHeight - 4, 24)
+                            let pillX = mainScreen.frame.maxX - (pillWidth / 2) - 8
+                            let pillY = (menuBarHeight / 2)
                             
                             Capsule()
                                 .frame(width: pillWidth, height: pillHeight)
@@ -47,30 +51,26 @@ struct BlurOverlayView: View {
                                 .blendMode(.destinationOut)
                         }
                         
-                        // Cutouts (Holes)
+                        // Cutouts (Holes) with smooth movement
                         let rects = focusManager.getCutoutRects()
                         ForEach(rects.indices, id: \.self) { index in
                             let rect = rects[index]
-                            RoundedRectangle(cornerRadius: 10)
-                                .frame(width: rect.width, height: rect.height)
+                            RoundedRectangle(cornerRadius: 12)
+                                .frame(width: rect.width + 8, height: rect.height + 8) // Slight padding
                                 .position(x: rect.midX, y: rect.midY)
                                 .blendMode(.destinationOut)
                         }
                     }
-                    .compositingGroup() // Important for destinationOut to work on the mask container
+                    .compositingGroup()
+                    .animation(.interactiveSpring(response: 0.15, dampingFraction: 0.8), value: focusManager.getCutoutRects().map { "\($0)" })
                 )
             }
         }
-        .allowsHitTesting(false) // Let clicks pass through!
+        .allowsHitTesting(false)
         .edgesIgnoringSafeArea(.all)
-        .opacity(settings.isEnabled ? 1.0 : 0.0) // Fade out instead of removing view to keep state alive
+        .opacity(settings.isEnabled ? 1.0 : 0.0)
+        .animation(.spring(response: 0.35, dampingFraction: 0.7), value: settings.isEnabled) // Bouncy spring for toggle
         .onReceive(timer) { _ in
-            // Force redraw logic handled by ObservableObject, 
-            // but we need to ensure the getCutoutRects() calculation is triggered/refreshing view.
-            // Since getCutoutRects accesses WindowTracker which publishes updates, 
-            // we need to make sure this View observes those updates.
-            // focusManager observes WindowTracker but getCutoutRects runs on demand.
-            // We need focusManager to publish when rects change.
             focusManager.objectWillChange.send()
         }
     }
