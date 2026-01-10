@@ -41,19 +41,15 @@ struct BlurOverlayView: View {
                         if let mainScreen = NSScreen.main {
                             let menuBarHeight = mainScreen.frame.height - mainScreen.visibleFrame.height - mainScreen.visibleFrame.minY + mainScreen.frame.minY
                             
-                            // Pill dimensions (closed state)
-                            let pillWidth: CGFloat = 700
+                            // Same width for both states
+                            let cutoutWidth: CGFloat = 700
                             let pillHeight = max(menuBarHeight - 4, 24)
+                            let popoverHeight: CGFloat = 450
                             
-                            // Rectangle dimensions (open state) - covers popover area
-                            let popoverWidth: CGFloat = 700 // Slightly larger than popover (300)
-                            let popoverHeight: CGFloat = 450 // Slightly larger than popover (400)
-                            
-                            // Calculate dimensions based on popover state
-                            let cutoutWidth = settings.isPopoverOpen ? popoverWidth : pillWidth
+                            // Height changes, position anchored at top-right
                             let cutoutHeight = settings.isPopoverOpen ? popoverHeight : pillHeight
-                            let cutoutX = mainScreen.frame.maxX - (settings.isPopoverOpen ? popoverWidth / 2 + 20 : pillWidth / 2 + 8)
-                            let cutoutY = settings.isPopoverOpen ? (popoverHeight / 2) + menuBarHeight : menuBarHeight / 2
+                            let cutoutX = mainScreen.frame.maxX - cutoutWidth / 2 - 8 // Fixed X position
+                            let cutoutY = cutoutHeight / 2 // Top-anchored: y = half of height
                             let cornerRadius: CGFloat = settings.isPopoverOpen ? 16 : pillHeight / 2
                             
                             RoundedRectangle(cornerRadius: cornerRadius)
