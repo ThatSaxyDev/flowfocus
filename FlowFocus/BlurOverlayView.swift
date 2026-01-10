@@ -37,18 +37,30 @@ struct BlurOverlayView: View {
                         Rectangle()
                             .fill(Color.black)
                         
-                        // Menu Bar Cutout - Pill shape on the RIGHT side only (status icons area)
+                        // Menu Bar Cutout - Animates from pill to rectangle when popover opens
                         if let mainScreen = NSScreen.main {
                             let menuBarHeight = mainScreen.frame.height - mainScreen.visibleFrame.height - mainScreen.visibleFrame.minY + mainScreen.frame.minY
+                            
+                            // Pill dimensions (closed state)
                             let pillWidth: CGFloat = 500
                             let pillHeight = max(menuBarHeight - 4, 24)
-                            let pillX = mainScreen.frame.maxX - (pillWidth / 2) - 8
-                            let pillY = (menuBarHeight / 2)
                             
-                            Capsule()
-                                .frame(width: pillWidth, height: pillHeight)
-                                .position(x: pillX, y: pillY)
+                            // Rectangle dimensions (open state) - covers popover area
+                            let popoverWidth: CGFloat = 600 // Slightly larger than popover (300)
+                            let popoverHeight: CGFloat = 450 // Slightly larger than popover (400)
+                            
+                            // Calculate dimensions based on popover state
+                            let cutoutWidth = settings.isPopoverOpen ? popoverWidth : pillWidth
+                            let cutoutHeight = settings.isPopoverOpen ? popoverHeight : pillHeight
+                            let cutoutX = mainScreen.frame.maxX - (settings.isPopoverOpen ? popoverWidth / 2 + 20 : pillWidth / 2 + 8)
+                            let cutoutY = settings.isPopoverOpen ? (popoverHeight / 2) + menuBarHeight : menuBarHeight / 2
+                            let cornerRadius: CGFloat = settings.isPopoverOpen ? 16 : pillHeight / 2
+                            
+                            RoundedRectangle(cornerRadius: cornerRadius)
+                                .frame(width: cutoutWidth, height: cutoutHeight)
+                                .position(x: cutoutX, y: cutoutY)
                                 .blendMode(.destinationOut)
+                                .animation(.spring(response: 0.35, dampingFraction: 0.75), value: settings.isPopoverOpen)
                         }
                         
                         // Cutouts (Holes) with smooth movement
