@@ -10,46 +10,45 @@ struct BlurOverlayView: View {
     
     var body: some View {
         ZStack {
-            if settings.isEnabled {
-                GeometryReader { geometry in
-                     ZStack {
-                        // Background Layer
-                        if settings.isDimMode {
-                            Color.black.opacity(settings.dimOpacity)
-                        } else {
-                            ZStack {
-                                // "popover" material is often cleaner/blurrier than hudWindow
-                                VisualEffectView(material: .popover, blendingMode: .behindWindow)
-                                    .opacity(1.0) // Keep blur full strength to avoid "fading out" of the blur radius
-                                
-                                // Use the slider to control the DARKNESS/TINT instead of blur opacity
-                                Color.black.opacity(Double(settings.blurStrength) / 120.0) // 0 to ~0.8 opacity
-                            }
+            GeometryReader { geometry in
+                 ZStack {
+                    // Background Layer
+                    if settings.isDimMode {
+                        Color.black.opacity(settings.dimOpacity)
+                    } else {
+                        ZStack {
+                            // "popover" material is often cleaner/blurrier than hudWindow
+                            VisualEffectView(material: .popover, blendingMode: .behindWindow)
+                                .opacity(1.0) // Keep blur full strength to avoid "fading out" of the blur radius
+                            
+                            // Use the slider to control the DARKNESS/TINT instead of blur opacity
+                            Color.black.opacity(Double(settings.blurStrength) / 120.0) // 0 to ~0.8 opacity
                         }
                     }
-                    // The cutout mask
-                    .mask(
-                        ZStack {
-                            Rectangle()
-                                .fill(Color.black)
-                            
-                            // Cutouts (Holes)
-                            let rects = focusManager.getCutoutRects()
-                            ForEach(rects.indices, id: \.self) { index in
-                                let rect = rects[index]
-                                RoundedRectangle(cornerRadius: 10)
-                                    .frame(width: rect.width, height: rect.height)
-                                    .position(x: rect.midX, y: rect.midY)
-                                    .blendMode(.destinationOut)
-                            }
-                        }
-                        .compositingGroup() // Important for destinationOut to work on the mask container
-                    )
                 }
-                .allowsHitTesting(false) // Let clicks pass through!
-                .edgesIgnoringSafeArea(.all)
+                // The cutout mask
+                .mask(
+                    ZStack {
+                        Rectangle()
+                            .fill(Color.black)
+                        
+                        // Cutouts (Holes)
+                        let rects = focusManager.getCutoutRects()
+                        ForEach(rects.indices, id: \.self) { index in
+                            let rect = rects[index]
+                            RoundedRectangle(cornerRadius: 10)
+                                .frame(width: rect.width, height: rect.height)
+                                .position(x: rect.midX, y: rect.midY)
+                                .blendMode(.destinationOut)
+                        }
+                    }
+                    .compositingGroup() // Important for destinationOut to work on the mask container
+                )
             }
         }
+        .allowsHitTesting(false) // Let clicks pass through!
+        .edgesIgnoringSafeArea(.all)
+        .opacity(settings.isEnabled ? 1.0 : 0.0) // Fade out instead of removing view to keep state alive
         .onReceive(timer) { _ in
             // Force redraw logic handled by ObservableObject, 
             // but we need to ensure the getCutoutRects() calculation is triggered/refreshing view.
