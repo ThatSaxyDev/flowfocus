@@ -70,4 +70,25 @@ class WindowFocusManager: ObservableObject {
         
         return rects
     }
+    
+    // Get info about pinned windows for the settings UI
+    func getPinnedWindowInfo() -> [(id: CGWindowID, name: String)] {
+        guard let info = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else { return [] }
+        
+        var result: [(id: CGWindowID, name: String)] = []
+        
+        for window in info {
+            guard let id = window[kCGWindowNumber as String] as? CGWindowID,
+                  pinnedWindowIDs.contains(id)
+            else { continue }
+            
+            let ownerName = window[kCGWindowOwnerName as String] as? String ?? "Unknown"
+            let windowName = window[kCGWindowName as String] as? String
+            let displayName = windowName ?? ownerName
+            
+            result.append((id: id, name: displayName))
+        }
+        
+        return result
+    }
 }
