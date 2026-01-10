@@ -72,6 +72,13 @@ struct SettingsView: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)
+            
+            // Footer
+            Text("Made by Kiishi")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.top, 8)
         }
         .padding()
         .frame(width: 280)

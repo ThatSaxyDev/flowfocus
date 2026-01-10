@@ -44,7 +44,7 @@ struct BlurOverlayView: View {
                             // Same width for both states
                             let cutoutWidth: CGFloat = 700
                             let pillHeight = max(menuBarHeight - 4, 24)
-                            let popoverHeight: CGFloat = 450
+                            let popoverHeight: CGFloat = 500
                             
                             // Height changes, position anchored at top-right
                             let cutoutHeight = settings.isPopoverOpen ? popoverHeight : pillHeight
