@@ -128,8 +128,8 @@ struct WindowSelectionView: View {
                     }
                     .padding(.vertical, 4)
                 }
-                .frame(height: 100) // Fixed height forcing scroll
-                .background(Color.gray.opacity(0.05))
+                .frame(height: 100)
+                .background(Color(nsColor: .controlBackgroundColor).opacity(0.5))
                 .cornerRadius(8)
             }
         }
