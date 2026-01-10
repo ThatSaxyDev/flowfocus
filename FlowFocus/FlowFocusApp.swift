@@ -16,6 +16,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var overlayController: OverlayWindowController?
     
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Prevent multiple instances
+        let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier!)
+        if runningApps.count > 1 {
+            // Another instance is already running, quit this one
+            NSApp.terminate(nil)
+            return
+        }
+        
         // Initialize components
         menuBarController = MenuBarController()
         overlayController = OverlayWindowController()
