@@ -1,7 +1,7 @@
 import Cocoa
 import SwiftUI
 
-class MenuBarController: NSObject {
+class MenuBarController: NSObject, NSPopoverDelegate {
     var statusItem: NSStatusItem?
     var popover: NSPopover?
     
@@ -23,6 +23,7 @@ class MenuBarController: NSObject {
         popover?.contentSize = NSSize(width: 300, height: 400)
         popover?.behavior = .transient
         popover?.contentViewController = NSHostingController(rootView: SettingsView())
+        popover?.delegate = self
     }
     
     @objc func togglePopover() {
@@ -32,6 +33,9 @@ class MenuBarController: NSObject {
             if popover.isShown {
                 popover.performClose(nil)
             } else {
+                // Hide the overlay so the popover is visible
+                OverlayWindowController.shared?.hideForPopover()
+                
                 popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
                 NSApp.activate(ignoringOtherApps: true)
             }
@@ -39,12 +43,20 @@ class MenuBarController: NSObject {
     }
     
     func openSettings() {
-        // Since we are using a popover for settings, we just toggle it open.
-        // We ensure it's open (not toggling off if already open).
         guard let button = statusItem?.button else { return }
         if let popover = popover, !popover.isShown {
-             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-             NSApp.activate(ignoringOtherApps: true)
+            // Hide the overlay so the popover is visible
+            OverlayWindowController.shared?.hideForPopover()
+            
+            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            NSApp.activate(ignoringOtherApps: true)
         }
+    }
+    
+    // MARK: - NSPopoverDelegate
+    
+    func popoverDidClose(_ notification: Notification) {
+        // Restore the overlay when the popover closes
+        OverlayWindowController.shared?.showAfterPopover()
     }
 }

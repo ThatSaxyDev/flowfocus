@@ -2,10 +2,12 @@ import Cocoa
 import SwiftUI
 
 class OverlayWindowController: NSObject {
+    static var shared: OverlayWindowController?
     var overlayWindow: NSWindow?
     
     override init() {
         super.init()
+        OverlayWindowController.shared = self
         createWindow()
         setupScreenObserver()
     }
@@ -43,5 +45,15 @@ class OverlayWindowController: NSObject {
         // Update frame when screens change
         let screenFrame = NSScreen.screens.map { $0.frame }.reduce(NSScreen.main?.frame ?? .zero) { $0.union($1) }
         overlayWindow?.setFrame(screenFrame, display: true)
+    }
+    
+    // MARK: - Popover Visibility Helpers
+    
+    func hideForPopover() {
+        overlayWindow?.alphaValue = 0.0
+    }
+    
+    func showAfterPopover() {
+        overlayWindow?.alphaValue = 1.0
     }
 }

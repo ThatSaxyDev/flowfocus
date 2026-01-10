@@ -32,6 +32,21 @@ struct BlurOverlayView: View {
                         Rectangle()
                             .fill(Color.black)
                         
+                        // Menu Bar Cutout - Pill shape on the RIGHT side only (status icons area)
+                        // This creates a sleek "control island" look for accessing FlowFocus
+                        if let mainScreen = NSScreen.main {
+                            let menuBarHeight = mainScreen.frame.height - mainScreen.visibleFrame.height - mainScreen.visibleFrame.minY + mainScreen.frame.minY
+                            let pillWidth: CGFloat = 500 // Width of the pill cutout
+                            let pillHeight = max(menuBarHeight - 4, 24) // Slightly smaller than menu bar for padding
+                            let pillX = mainScreen.frame.maxX - (pillWidth / 2) - 8 // 8px from right edge
+                            let pillY = (menuBarHeight / 2) // Centered vertically in menu bar
+                            
+                            Capsule()
+                                .frame(width: pillWidth, height: pillHeight)
+                                .position(x: pillX, y: pillY)
+                                .blendMode(.destinationOut)
+                        }
+                        
                         // Cutouts (Holes)
                         let rects = focusManager.getCutoutRects()
                         ForEach(rects.indices, id: \.self) { index in
