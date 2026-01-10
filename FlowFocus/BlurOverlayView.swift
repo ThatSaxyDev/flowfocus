@@ -42,7 +42,7 @@ struct BlurOverlayView: View {
                             let menuBarHeight = mainScreen.frame.height - mainScreen.visibleFrame.height - mainScreen.visibleFrame.minY + mainScreen.frame.minY
                             
                             // Same width for both states
-                            let cutoutWidth: CGFloat = 700
+                            let cutoutWidth: CGFloat = 900
                             let pillHeight = max(menuBarHeight - 4, 24)
                             let popoverHeight: CGFloat = 500
                             

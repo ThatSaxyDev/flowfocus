@@ -184,6 +184,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				ARCHS = "$(ARCHS_STANDARD)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -241,6 +242,8 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
+				ARCHS = "$(ARCHS_STANDARD)";
+				ONLY_ACTIVE_ARCH = NO;
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;

@@ -31,6 +31,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Check for Accessibility Permissions
         checkAccessibilityPermissions()
         
+        // Show the popover on launch to help users find the menu bar icon
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            self.menuBarController?.openSettings()
+        }
+        
         // Setup Global Hotkeys (Basic implementation using NSEvent)
         NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { event in
             self.handleGlobalKey(event)
