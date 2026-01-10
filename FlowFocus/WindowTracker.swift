@@ -1,6 +1,7 @@
 import Cocoa
 import Combine
 import CoreVideo
+import ApplicationServices
 
 class WindowTracker: ObservableObject {
     static let shared = WindowTracker()
@@ -45,36 +46,86 @@ class WindowTracker: ObservableObject {
     }
     
     private func updateFocusedWindowKey() {
+        // High-frequency polling using Accessibility API for smoothness
+        updateFocusedWindowFrameAX()
+        
+        // Lower-frequency polling for IDs (pinning support) could go here or remain
+        // For now, let's just make sure we get the frame fast.
+        // We still need the ID to update 'focusedWindowID' for the FocusManager logic.
+        // But running CGWindowList every 16ms is heavy.
+        // We can optimize by only running CGWindowList if the App/Window *changed*, 
+        // but detecting that change requires... checking.
+        // Let's rely on AX for the Geometry (Visuals) and maybe run ID check less often?
+        // Or just run the ID check on a throttle.
+        
+        // Actually, let's keep the ID check separate on a background queue/timer if possible,
+        // OR just do it every N frames.
+        
+        struct State {
+            static var counter = 0
+        }
+        State.counter += 1
+        if State.counter % 10 == 0 { // Run ID check every ~160ms (approx)
+             updateFocusedWindowID_CG()
+        }
+    }
+
+    private func updateFocusedWindowFrameAX() {
+        let systemWide = AXUIElementCreateSystemWide()
+        
+        var focusedApp: AnyObject?
+        let errApp = AXUIElementCopyAttributeValue(systemWide, kAXFocusedApplicationAttribute as CFString, &focusedApp)
+        guard errApp == .success, let app = focusedApp else { return }
+        let appElement = app as! AXUIElement
+        
+        var focusedWindow: AnyObject?
+        let errWin = AXUIElementCopyAttributeValue(appElement, kAXFocusedWindowAttribute as CFString, &focusedWindow)
+        guard errWin == .success, let window = focusedWindow else { return }
+        let windowElement = window as! AXUIElement
+        
+        var position: AnyObject?
+        var size: AnyObject?
+        AXUIElementCopyAttributeValue(windowElement, kAXPositionAttribute as CFString, &position)
+        AXUIElementCopyAttributeValue(windowElement, kAXSizeAttribute as CFString, &size)
+        
+        if let posVal = position as! AXValue?, let sizeVal = size as! AXValue? {
+            var pt = CGPoint.zero
+            var sz = CGSize.zero
+            AXValueGetValue(posVal, .cgPoint, &pt)
+            AXValueGetValue(sizeVal, .cgSize, &sz)
+            
+            let rect = CGRect(origin: pt, size: sz)
+            
+            DispatchQueue.main.async {
+                // Smooth update for visuals
+                if self.focusedWindowFrame != rect {
+                    self.focusedWindowFrame = rect
+                }
+            }
+        }
+    }
+    
+    private func updateFocusedWindowID_CG() {
         guard let info = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]] else { return }
         
-        // Find the frontmost window (excluding our own overlay and system windows)
-        // This is a naive implementation; for robust focus tracking we might use Accessibility API
-        // For now, we look for the first window that isn't us and has a title/is normal
-        
         for window in info {
-            guard let layer = window[kCGWindowLayer as String] as? Int, layer == 0, // Normal window layer
+            guard let layer = window[kCGWindowLayer as String] as? Int, layer == 0,
                   let ownerName = window[kCGWindowOwnerName as String] as? String,
-                  ownerName != "FlowFocus", // Ignore ourselves
-                  let boundsDict = window[kCGWindowBounds as String] as? [String: Any],
-                  let bounds = CGRect(dictionaryRepresentation: boundsDict as CFDictionary),
+                  ownerName != "FlowFocus",
                   let id = window[kCGWindowNumber as String] as? CGWindowID,
                   let ownerPID = window[kCGWindowOwnerPID as String] as? Int32
             else { continue }
             
-            // Checking availability/validity might need AX API, but geometry is fast
+            // To match AX frame with CG ID is tricky without fuzzy matching frames.
+            // But usually the frontmost window in CGWindowList IS the focused window.
             
             DispatchQueue.main.async {
                 if self.focusedWindowID != id {
-                    self.focusedWindowID = id
-                    self.fetchAppWindows(pid: ownerPID)
-                }
-                
-                // Always update frame in case it moves
-                if self.focusedWindowFrame != bounds {
-                    self.focusedWindowFrame = bounds
+                     self.focusedWindowID = id
+                     self.fetchAppWindows(pid: ownerPID)
                 }
             }
-            return // Found top window
+            return
         }
     }
     

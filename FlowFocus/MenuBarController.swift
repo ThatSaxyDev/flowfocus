@@ -33,9 +33,18 @@ class MenuBarController: NSObject {
                 popover.performClose(nil)
             } else {
                 popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-                // Activate app to ensure popover can receive inputs if needed
                 NSApp.activate(ignoringOtherApps: true)
             }
+        }
+    }
+    
+    func openSettings() {
+        // Since we are using a popover for settings, we just toggle it open.
+        // We ensure it's open (not toggling off if already open).
+        guard let button = statusItem?.button else { return }
+        if let popover = popover, !popover.isShown {
+             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+             NSApp.activate(ignoringOtherApps: true)
         }
     }
 }

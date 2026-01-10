@@ -20,13 +20,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menuBarController = MenuBarController()
         overlayController = OverlayWindowController()
         
-        // Setup Global Hotkeys (Basic implementation using NSEvent)
-        // Note: For robust global hotkeys, we'd normally use Carbon/HotKey libs, 
-        // but for a simple prototype, NSEvent monitoring works if the app has headers.
-        // Actually, detecting key presses when app is background requires Accessibility permissions.
+        // Check for Accessibility Permissions
+        checkAccessibilityPermissions()
         
+        // Setup Global Hotkeys (Basic implementation using NSEvent)
         NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { event in
             self.handleGlobalKey(event)
+        }
+    }
+    
+    func checkAccessibilityPermissions() {
+        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true]
+        let isTrusted = AXIsProcessTrustedWithOptions(options as CFDictionary)
+        
+        if !isTrusted {
+            // Wait a sec for the system prompt, or show our own if needed.
+            // But usually AXIsProcessTrustedWithOptions(prompt: true) shows the system dialog.
+            print("Access Not Trusted")
         }
     }
     
@@ -40,11 +50,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             case "p":
                  // Pin focused window
-                 if let id = WindowTracker.shared.focusedWindowID as? CGWindowID {
-                     WindowFocusManager.shared.togglePin(windowID: id)
-                 }
+                 let id = WindowTracker.shared.focusedWindowID
+                 WindowFocusManager.shared.togglePin(windowID: id)
+            case ",":
+                // ⌃⌥⌘, = Open Settings
+                DispatchQueue.main.async {
+                    self.menuBarController?.openSettings()
+                }
             case "\u{1b}": // Escape
-                WindowFocusManager.shared.clearPins()
+                if WindowFocusManager.shared.pinnedWindowIDs.isEmpty {
+                     // If no pins, escape also opens/toggles settings as a fallback/panic button
+                     DispatchQueue.main.async {
+                         self.menuBarController?.openSettings()
+                     }
+                } else {
+                    WindowFocusManager.shared.clearPins()
+                }
             default:
                 break
             }
