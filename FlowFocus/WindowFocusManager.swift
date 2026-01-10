@@ -122,6 +122,7 @@ class WindowFocusManager: ObservableObject {
             ))
         }
         
+        print("getAllWindowsInfo found \(result.count) windows: \(result.map { $0.name })")
         return result
     }
 }

@@ -51,7 +51,7 @@ struct SettingsView: View {
                         .font(.caption)
                     Slider(
                         value: settings.isDimMode ? $settings.dimOpacity : $settings.blurStrength,
-                        in: settings.isDimMode ? 0...1 : 0...100
+                        in: settings.isDimMode ? 0...0.85 : 0...100
                     )
                 }
             }
@@ -59,71 +59,7 @@ struct SettingsView: View {
             // Window Selection Section (only show in multiPin mode)
             if settings.focusMode == .multiPin {
                 Divider()
-                
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Image(systemName: "macwindow.on.rectangle")
-                            .foregroundColor(.accentColor)
-                        Text("Select Windows")
-                            .font(.subheadline.weight(.medium))
-                        Spacer()
-                        if !focusManager.pinnedWindowIDs.isEmpty {
-                            Button("Clear All") {
-                                focusManager.clearPins()
-                            }
-                            .buttonStyle(.plain)
-                            .foregroundColor(.red)
-                            .font(.caption)
-                        }
-                    }
-                    
-                    let windows = focusManager.getAllWindowsInfo()
-                    
-                    if windows.isEmpty {
-                        Text("No windows available")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .center)
-                            .padding(.vertical, 8)
-                    } else {
-                        ScrollView {
-                            VStack(spacing: 4) {
-                                ForEach(windows, id: \.id) { window in
-                                    HStack(spacing: 8) {
-                                        // Toggle
-                                        Image(systemName: window.isPinned ? "checkmark.circle.fill" : "circle")
-                                            .foregroundColor(window.isPinned ? .accentColor : .secondary)
-                                            .font(.system(size: 16))
-                                        
-                                        // App icon placeholder + name
-                                        VStack(alignment: .leading, spacing: 1) {
-                                            Text(window.name)
-                                                .font(.caption)
-                                                .lineLimit(1)
-                                                .truncationMode(.middle)
-                                            if window.name != window.appName {
-                                                Text(window.appName)
-                                                    .font(.caption2)
-                                                    .foregroundColor(.secondary)
-                                            }
-                                        }
-                                        
-                                        Spacer()
-                                    }
-                                    .padding(.vertical, 4)
-                                    .padding(.horizontal, 6)
-                                    .background(window.isPinned ? Color.accentColor.opacity(0.1) : Color.clear)
-                                    .cornerRadius(6)
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        focusManager.togglePin(windowID: window.id)
-                                    }
-                                }
-                            }
-                        }
-                        .frame(maxHeight: 150)
-                    }
-                }
+                WindowSelectionView()
             }
             
             Divider()
@@ -142,3 +78,106 @@ struct SettingsView: View {
     }
 }
 
+// Separate view for window selection to avoid layout recursion
+struct WindowSelectionView: View {
+    @ObservedObject var focusManager = WindowFocusManager.shared
+    @State private var windows: [(id: CGWindowID, name: String, appName: String, isPinned: Bool)] = []
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "macwindow.on.rectangle")
+                    .foregroundColor(.accentColor)
+                Text("Select Windows")
+                    .font(.subheadline.weight(.medium))
+                Spacer()
+                
+                Button("Refresh") {
+                    refreshWindows()
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.accentColor)
+                .font(.caption)
+                
+                if !focusManager.pinnedWindowIDs.isEmpty {
+                    Button("Clear") {
+                        focusManager.clearPins()
+                        refreshWindows()
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.red)
+                    .font(.caption)
+                }
+            }
+            
+            if windows.isEmpty {
+                Text("No windows available.\nTap Refresh to reload.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 8)
+            } else {
+                ScrollView(.vertical, showsIndicators: true) {
+                    VStack(spacing: 4) {
+                        ForEach(windows, id: \.id) { window in
+                            WindowRowView(window: window) {
+                                focusManager.togglePin(windowID: window.id)
+                                refreshWindows()
+                            }
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+                .frame(height: 100) // Fixed height forcing scroll
+                .background(Color.gray.opacity(0.05))
+                .cornerRadius(8)
+            }
+        }
+        .task {
+            // Small delay to ensure view is fully rendered
+            try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 second
+            await MainActor.run {
+                refreshWindows()
+            }
+        }
+    }
+    
+    private func refreshWindows() {
+        windows = focusManager.getAllWindowsInfo()
+    }
+}
+
+struct WindowRowView: View {
+    let window: (id: CGWindowID, name: String, appName: String, isPinned: Bool)
+    let onTap: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: window.isPinned ? "checkmark.circle.fill" : "circle")
+                .foregroundColor(window.isPinned ? .accentColor : .secondary)
+                .font(.system(size: 16))
+            
+            VStack(alignment: .leading, spacing: 1) {
+                Text(window.name)
+                    .font(.caption)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                if window.name != window.appName {
+                    Text(window.appName)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            Spacer()
+        }
+        .padding(.vertical, 4)
+        .padding(.horizontal, 6)
+        .background(window.isPinned ? Color.accentColor.opacity(0.1) : Color.clear)
+        .cornerRadius(6)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap()
+        }
+    }
+}
