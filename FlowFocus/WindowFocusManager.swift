@@ -99,13 +99,13 @@ class WindowFocusManager: ObservableObject {
         
         var result: [(id: CGWindowID, name: String, appName: String, isPinned: Bool)] = []
         
-        // Apps to exclude (system UI only)
-        let excludedApps = ["Window Server", "Dock", "SystemUIServer", "Control Center", "Notification Center", "FlowFocus", "Spotlight"]
+        // Apps to exclude (system UI and our own app)
+        let excludedApps = ["window server", "dock", "systemuiserver", "control center", "notification center", "flowfocus", "spotlight", "screenshot"]
         
         for window in info {
             guard let id = window[kCGWindowNumber as String] as? CGWindowID,
                   let ownerName = window[kCGWindowOwnerName as String] as? String,
-                  !excludedApps.contains(ownerName),
+                  !excludedApps.contains(ownerName.lowercased()),
                   let boundsDict = window[kCGWindowBounds as String] as? [String: Any],
                   let bounds = CGRect(dictionaryRepresentation: boundsDict as CFDictionary),
                   bounds.width > 100, bounds.height > 50 // Skip tiny windows (toolbars, etc.)
