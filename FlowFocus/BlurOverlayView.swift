@@ -56,7 +56,7 @@ struct BlurOverlayView: View {
                         ForEach(rects.indices, id: \.self) { index in
                             let rect = rects[index]
                             RoundedRectangle(cornerRadius: 12)
-                                .frame(width: rect.width + 8, height: rect.height + 8) // Slight padding
+                                .frame(width: rect.width, height: rect.height) // Snug fit
                                 .position(x: rect.midX, y: rect.midY)
                                 .blendMode(.destinationOut)
                         }
