@@ -95,11 +95,17 @@ struct SettingsView: View {
             .buttonStyle(.bordered)
             
             // Footer
-            Text("Made by Kiishi")
-                .font(.caption2)
-                .foregroundColor(.secondary)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.top, 8)
+            VStack(spacing: 2) {
+                Text("Made by Kiishi")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                
+                Text("v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")")
+                    .font(.caption2)
+                    .foregroundColor(.secondary.opacity(0.7))
+            }
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.top, 8)
         }
         .padding()
         .frame(width: 280)
