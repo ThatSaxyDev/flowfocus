@@ -20,6 +20,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var toggleFocusHotKey: HotKey?
     var openSettingsHotKey: HotKey?
     var clearPinsHotKey: HotKey?
+    var quitHotKey: HotKey?
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Prevent multiple instances
@@ -84,6 +85,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             } else {
                 WindowFocusManager.shared.clearPins()
+            }
+        }
+        
+        // ⌃⌥⌘Q = Quit FlowFocus
+        quitHotKey = HotKey(key: .q, modifiers: [.control, .option, .command])
+        quitHotKey?.keyDownHandler = {
+            DispatchQueue.main.async {
+                NSApplication.shared.terminate(nil)
             }
         }
     }

@@ -66,10 +66,11 @@ struct SettingsView: View {
             
             // Keyboard Shortcuts Help (collapsible)
             DisclosureGroup {
-                VStack(alignment: .leading, spacing: 6) {
-                    ShortcutRow(keys: "⌃ ⌥ ⌘ F", action: "Turn on / off")
-                    ShortcutRow(keys: "⌃ ⌥ ⌘ ,", action: "Open settings")
-                    ShortcutRow(keys: "⌃ ⌥ ⌘ Esc", action: "Clear all pins")
+                VStack(alignment: .leading, spacing: 8) {
+                    ShortcutRow(keys: ["⌃", "⌥", "⌘", "F"], action: "Turn on / off")
+                    ShortcutRow(keys: ["⌃", "⌥", "⌘", ","], action: "Open settings")
+                    ShortcutRow(keys: ["⌃", "⌥", "⌘", "esc"], action: "Clear all pins")
+                    ShortcutRow(keys: ["⌃", "⌥", "⌘", "Q"], action: "Quit")
                 }
                 .padding(.top, 4)
             } label: {
@@ -210,19 +211,40 @@ struct WindowRowView: View {
 }
 
 struct ShortcutRow: View {
-    let keys: String
+    let keys: [String]
     let action: String
     
     var body: some View {
-        HStack {
-            Text(keys)
-                .font(.system(.caption, design: .rounded).weight(.medium))
-                .foregroundColor(.primary)
-                .frame(width: 90, alignment: .leading)
+        HStack(spacing: 12) {
+            HStack(spacing: 3) {
+                ForEach(keys, id: \.self) { key in
+                    KeyCapView(key: key)
+                }
+            }
             Text(action)
                 .font(.caption)
                 .foregroundColor(.secondary)
             Spacer()
         }
+    }
+}
+
+struct KeyCapView: View {
+    let key: String
+    
+    var body: some View {
+        Text(key)
+            .font(.system(size: 10, weight: .medium, design: .rounded))
+            .foregroundColor(.primary)
+            .frame(minWidth: 18, minHeight: 18)
+            .padding(.horizontal, 4)
+            .background(
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color(nsColor: .controlBackgroundColor))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(Color(nsColor: .separatorColor), lineWidth: 0.5)
+            )
     }
 }
