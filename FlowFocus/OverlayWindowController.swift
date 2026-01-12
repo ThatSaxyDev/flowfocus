@@ -4,14 +4,12 @@ import SwiftUI
 class OverlayWindowController: NSObject {
     static var shared: OverlayWindowController?
     var overlayWindow: NSWindow?
-    var mouseMonitor: Any?
     
     override init() {
         super.init()
         OverlayWindowController.shared = self
         createWindow()
         setupScreenObserver()
-        setupMouseTracking()
     }
     
     func createWindow() {
@@ -26,7 +24,8 @@ class OverlayWindowController: NSObject {
         
         window.isOpaque = false
         window.backgroundColor = .clear
-        window.level = .init(Int(CGWindowLevelForKey(.assistiveTechHighWindow)))
+        // Use floating level so system menus and UI appear above the overlay
+        window.level = .floating
         window.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]
         
         // SAFE: Let all clicks pass through (no blocking for now)
@@ -46,54 +45,5 @@ class OverlayWindowController: NSObject {
     @objc func screenChanged() {
         let screenFrame = NSScreen.screens.map { $0.frame }.reduce(NSScreen.main?.frame ?? .zero) { $0.union($1) }
         overlayWindow?.setFrame(screenFrame, display: true)
-    }
-    
-    // MARK: - Menu Bar Hover Detection
-    
-    func setupMouseTracking() {
-        // Monitor global mouse movement
-        mouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved]) { [weak self] event in
-            self?.checkMenuBarHover()
-        }
-        
-        // Also monitor local events when our app is active
-        NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) { [weak self] event in
-            self?.checkMenuBarHover()
-            return event
-        }
-    }
-    
-    func checkMenuBarHover() {
-        guard let mainScreen = NSScreen.main else { return }
-        
-        let mouseLocation = NSEvent.mouseLocation
-        
-        // Menu bar zone: top 30 pixels of the screen
-        let menuBarZoneHeight: CGFloat = 30
-        let screenTop = mainScreen.frame.maxY
-        let isInMenuBarZone = mouseLocation.y >= (screenTop - menuBarZoneHeight)
-        
-        // Only update if the state changed
-        if SettingsManager.shared.isMenuBarHovered != isInMenuBarZone {
-            DispatchQueue.main.async {
-                SettingsManager.shared.isMenuBarHovered = isInMenuBarZone
-            }
-        }
-    }
-    
-    // MARK: - Popover Visibility Helpers
-    
-    func hideForPopover() {
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.2
-            overlayWindow?.animator().alphaValue = 0.0
-        }
-    }
-    
-    func showAfterPopover() {
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.2
-            overlayWindow?.animator().alphaValue = 1.0
-        }
     }
 }

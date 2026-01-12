@@ -33,9 +33,6 @@ class MenuBarController: NSObject, NSPopoverDelegate {
             if popover.isShown {
                 popover.performClose(nil)
             } else {
-                // Animate the cutout to expand for the popover
-                SettingsManager.shared.isPopoverOpen = true
-                
                 popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
                 NSApp.activate(ignoringOtherApps: true)
             }
@@ -45,9 +42,6 @@ class MenuBarController: NSObject, NSPopoverDelegate {
     func openSettings() {
         guard let button = statusItem?.button else { return }
         if let popover = popover, !popover.isShown {
-            // Animate the cutout to expand for the popover
-            SettingsManager.shared.isPopoverOpen = true
-            
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             NSApp.activate(ignoringOtherApps: true)
         }
@@ -56,8 +50,6 @@ class MenuBarController: NSObject, NSPopoverDelegate {
     // MARK: - NSPopoverDelegate
     
     func popoverDidClose(_ notification: Notification) {
-        // Animate the cutout back to pill shape
-        SettingsManager.shared.isPopoverOpen = false
+        // Popover closed
     }
 }
-
