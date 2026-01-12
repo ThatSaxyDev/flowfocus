@@ -67,11 +67,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         
-        // ⌃⌥⌘, = Open Settings
+        // ⌃⌥⌘, = Toggle Settings (open if closed, close if open)
         openSettingsHotKey = HotKey(key: .comma, modifiers: [.control, .option, .command])
         openSettingsHotKey?.keyDownHandler = { [weak self] in
             DispatchQueue.main.async {
-                self?.menuBarController?.openSettings()
+                self?.menuBarController?.togglePopover()
             }
         }
         
