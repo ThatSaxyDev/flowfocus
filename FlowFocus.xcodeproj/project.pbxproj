@@ -23,6 +23,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9AEF7D302F12000000863E6B /* HotKey in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +66,7 @@
 			);
 			name = FlowFocus;
 			packageProductDependencies = (
+				9AEF7D2F2F12000000863E6B /* HotKey */,
 			);
 			productName = FlowFocus;
 			productReference = 9AEF7D0D2F10D3C900863E6B /* FlowFocus.app */;
@@ -97,6 +99,9 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9AEF7D0E2F10D3C900863E6B /* Products */;
 			projectDirPath = "";
+			packageReferences = (
+				9AEF7D2E2F12000000863E6B /* XCRemoteSwiftPackageReference "HotKey" */,
+			);
 			projectRoot = "";
 			targets = (
 				9AEF7D0C2F10D3C900863E6B /* FlowFocus */,
@@ -257,7 +262,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 27LSZPF3J7;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO;
@@ -302,7 +307,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 27LSZPF3J7;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO;
@@ -360,6 +365,32 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		9AEF7D2E2F12000000863E6B /* XCRemoteSwiftPackageReference "HotKey" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/soffes/HotKey";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.2.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9AEF7D2F2F12000000863E6B /* HotKey */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9AEF7D2E2F12000000863E6B /* XCRemoteSwiftPackageReference "HotKey" */;
+			productName = HotKey;
+		};
+/* End XCSwiftPackageProductDependency section */
+
+/* Begin PBXBuildFile section */
+		9AEF7D302F12000000863E6B /* HotKey in Frameworks */ = {
+			isa = PBXBuildFile;
+			productRef = 9AEF7D2F2F12000000863E6B /* HotKey */;
+		};
+/* End PBXBuildFile section */
 	};
 	rootObject = 9AEF7D052F10D3C900863E6B /* Project object */;
 }

@@ -34,6 +34,16 @@
 
 ---
 
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `⌃ ⌥ ⌘ F` | Turn FlowFocus on / off |
+| `⌃ ⌥ ⌘ ,` | Open settings |
+| `⌃ ⌥ ⌘ Esc` | Clear all pins |
+
+---
+
 ## Preview
 
 <p align="center">

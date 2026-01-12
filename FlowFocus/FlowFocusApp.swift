@@ -1,4 +1,5 @@
 import SwiftUI
+import HotKey
 
 @main
 struct FlowFocusApp: App {
@@ -14,6 +15,11 @@ struct FlowFocusApp: App {
 class AppDelegate: NSObject, NSApplicationDelegate {
     var menuBarController: MenuBarController?
     var overlayController: OverlayWindowController?
+    
+    // Global hotkeys using HotKey library
+    var toggleFocusHotKey: HotKey?
+    var openSettingsHotKey: HotKey?
+    var clearPinsHotKey: HotKey?
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Prevent multiple instances
@@ -36,10 +42,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self.menuBarController?.openSettings()
         }
         
-        // Setup Global Hotkeys (Basic implementation using NSEvent)
-        NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { event in
-            self.handleGlobalKey(event)
-        }
+        // Setup Global Hotkeys using HotKey library
+        setupGlobalHotkeys()
     }
     
     func checkAccessibilityPermissions() {
@@ -53,34 +57,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
-    func handleGlobalKey(_ event: NSEvent) {
-        // ⌃⌥⌘F = Toggle Focus (Control + Option + Command + F)
-        if event.modifierFlags.contains([.control, .option, .command]) {
-            switch event.characters?.lowercased() {
-            case "f":
+    func setupGlobalHotkeys() {
+        // ⌃⌥⌘F = Turn FlowFocus on/off
+        toggleFocusHotKey = HotKey(key: .f, modifiers: [.control, .option, .command])
+        toggleFocusHotKey?.keyDownHandler = {
+            DispatchQueue.main.async {
+                SettingsManager.shared.isEnabled.toggle()
+            }
+        }
+        
+        // ⌃⌥⌘, = Open Settings
+        openSettingsHotKey = HotKey(key: .comma, modifiers: [.control, .option, .command])
+        openSettingsHotKey?.keyDownHandler = { [weak self] in
+            DispatchQueue.main.async {
+                self?.menuBarController?.openSettings()
+            }
+        }
+        
+        // ⌃⌥⌘Escape = Clear pins (or open settings if no pins)
+        clearPinsHotKey = HotKey(key: .escape, modifiers: [.control, .option, .command])
+        clearPinsHotKey?.keyDownHandler = { [weak self] in
+            if WindowFocusManager.shared.pinnedWindowIDs.isEmpty {
+                // If no pins, escape also opens/toggles settings as a fallback/panic button
                 DispatchQueue.main.async {
-                    SettingsManager.shared.isEnabled.toggle()
+                    self?.menuBarController?.openSettings()
                 }
-            case "p":
-                 // Pin focused window
-                 let id = WindowTracker.shared.focusedWindowID
-                 WindowFocusManager.shared.togglePin(windowID: id)
-            case ",":
-                // ⌃⌥⌘, = Open Settings
-                DispatchQueue.main.async {
-                    self.menuBarController?.openSettings()
-                }
-            case "\u{1b}": // Escape
-                if WindowFocusManager.shared.pinnedWindowIDs.isEmpty {
-                     // If no pins, escape also opens/toggles settings as a fallback/panic button
-                     DispatchQueue.main.async {
-                         self.menuBarController?.openSettings()
-                     }
-                } else {
-                    WindowFocusManager.shared.clearPins()
-                }
-            default:
-                break
+            } else {
+                WindowFocusManager.shared.clearPins()
             }
         }
     }

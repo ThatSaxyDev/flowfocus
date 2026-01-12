@@ -64,6 +64,26 @@ struct SettingsView: View {
             
             Divider()
             
+            // Keyboard Shortcuts Help (collapsible)
+            DisclosureGroup {
+                VStack(alignment: .leading, spacing: 6) {
+                    ShortcutRow(keys: "⌃ ⌥ ⌘ F", action: "Turn on / off")
+                    ShortcutRow(keys: "⌃ ⌥ ⌘ ,", action: "Open settings")
+                    ShortcutRow(keys: "⌃ ⌥ ⌘ Esc", action: "Clear all pins")
+                }
+                .padding(.top, 4)
+            } label: {
+                HStack {
+                    Image(systemName: "keyboard")
+                        .foregroundColor(.secondary)
+                    Text("Keyboard Shortcuts")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            Divider()
+            
             // Quit Button
             Button {
                 NSApplication.shared.terminate(nil)
@@ -185,6 +205,24 @@ struct WindowRowView: View {
         .contentShape(Rectangle())
         .onTapGesture {
             onTap()
+        }
+    }
+}
+
+struct ShortcutRow: View {
+    let keys: String
+    let action: String
+    
+    var body: some View {
+        HStack {
+            Text(keys)
+                .font(.system(.caption, design: .rounded).weight(.medium))
+                .foregroundColor(.primary)
+                .frame(width: 90, alignment: .leading)
+            Text(action)
+                .font(.caption)
+                .foregroundColor(.secondary)
+            Spacer()
         }
     }
 }
