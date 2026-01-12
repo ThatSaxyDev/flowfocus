@@ -12,6 +12,7 @@ class SettingsManager: ObservableObject {
     
     // Runtime state (not persisted)
     @Published var isPopoverOpen: Bool = false
+    @Published var isMenuBarHovered: Bool = false
     
     enum FocusMode: String, CaseIterable, Identifiable {
         case single = "Single Window"
