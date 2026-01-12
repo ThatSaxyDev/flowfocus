@@ -38,10 +38,10 @@
 
 | Shortcut | Action |
 |----------|--------|
-| `⌃ ⌥ ⌘ F` | Turn FlowFocus on / off |
-| `⌃ ⌥ ⌘ ,` | Open settings |
-| `⌃ ⌥ ⌘ Esc` | Clear all pins |
-| `⌃ ⌥ ⌘ Q` | Quit FlowFocus |
+| `⌥ ⌘ F` | Turn FlowFocus on / off |
+| `⌥ ⌘ ,` | Open settings |
+| `⌥ ⌘ Esc` | Clear all pins |
+| `⌥ ⌘ Q` | Quit FlowFocus |
 
 ---
 

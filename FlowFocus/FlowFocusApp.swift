@@ -59,27 +59,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func setupGlobalHotkeys() {
-        // ⌃⌥⌘F = Turn FlowFocus on/off
-        toggleFocusHotKey = HotKey(key: .f, modifiers: [.control, .option, .command])
+        // ⌥⌘F = Turn FlowFocus on/off
+        toggleFocusHotKey = HotKey(key: .f, modifiers: [.option, .command])
         toggleFocusHotKey?.keyDownHandler = {
             DispatchQueue.main.async {
                 SettingsManager.shared.isEnabled.toggle()
             }
         }
         
-        // ⌃⌥⌘, = Toggle Settings (open if closed, close if open)
-        openSettingsHotKey = HotKey(key: .comma, modifiers: [.control, .option, .command])
+        // ⌥⌘, = Toggle Settings
+        openSettingsHotKey = HotKey(key: .comma, modifiers: [.option, .command])
         openSettingsHotKey?.keyDownHandler = { [weak self] in
             DispatchQueue.main.async {
                 self?.menuBarController?.togglePopover()
             }
         }
         
-        // ⌃⌥⌘Escape = Clear pins (or open settings if no pins)
-        clearPinsHotKey = HotKey(key: .escape, modifiers: [.control, .option, .command])
+        // ⌥⌘Escape = Clear pins
+        clearPinsHotKey = HotKey(key: .escape, modifiers: [.option, .command])
         clearPinsHotKey?.keyDownHandler = { [weak self] in
             if WindowFocusManager.shared.pinnedWindowIDs.isEmpty {
-                // If no pins, escape also opens/toggles settings as a fallback/panic button
                 DispatchQueue.main.async {
                     self?.menuBarController?.openSettings()
                 }
@@ -88,8 +87,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         
-        // ⌃⌥⌘Q = Quit FlowFocus
-        quitHotKey = HotKey(key: .q, modifiers: [.control, .option, .command])
+        // ⌥⌘Q = Quit FlowFocus
+        quitHotKey = HotKey(key: .q, modifiers: [.option, .command])
         quitHotKey?.keyDownHandler = {
             DispatchQueue.main.async {
                 NSApplication.shared.terminate(nil)

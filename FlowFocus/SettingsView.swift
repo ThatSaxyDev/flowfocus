@@ -67,10 +67,10 @@ struct SettingsView: View {
             // Keyboard Shortcuts Help (collapsible)
             DisclosureGroup {
                 VStack(alignment: .leading, spacing: 8) {
-                    ShortcutRow(keys: ["⌃", "⌥", "⌘", "F"], action: "Turn on / off")
-                    ShortcutRow(keys: ["⌃", "⌥", "⌘", ","], action: "Open settings")
-                    ShortcutRow(keys: ["⌃", "⌥", "⌘", "esc"], action: "Clear all pins")
-                    ShortcutRow(keys: ["⌃", "⌥", "⌘", "Q"], action: "Quit")
+                    ShortcutRow(keys: ["⌥", "⌘", "F"], action: "Turn on / off")
+                    ShortcutRow(keys: ["⌥", "⌘", ","], action: "Open settings")
+                    ShortcutRow(keys: ["⌥", "⌘", "esc"], action: "Clear all pins")
+                    ShortcutRow(keys: ["⌥", "⌘", "Q"], action: "Quit")
                 }
                 .padding(.top, 4)
             } label: {
